@@ -38,8 +38,8 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="Web.config" />
+    <None Include="websocketapp - Web Deploy.pubxml" />
     <None Include="Web.Debug.config" />
-    <None Include="testwebsocketnode - Web Deploy.pubxml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="public\" />

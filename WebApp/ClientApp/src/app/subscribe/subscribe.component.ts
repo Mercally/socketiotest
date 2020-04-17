@@ -8,7 +8,7 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 })
 export class SubscribeComponent {
 
-  socketUrl = 'wss://testwebsocketnode.azurewebsites.net/socket.io/';
+  socketUrl = 'wss://websocketapp.azurewebsites.net/';
   //socketUrl = 'wss://localhost:3000/';
   //ticketSocket: WebSocketSubject<any> = webSocket<any>(this.socketUrl);
   objectSocket$ = webSocket(this.socketUrl);

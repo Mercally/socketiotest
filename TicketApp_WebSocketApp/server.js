@@ -1,24 +1,25 @@
 'use strict';
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const http = require('http');
+const https = require('https');
+//const socketIo = require('socket.io');
+const webSocket = require('ws');
 const app = express();
-// Postgres:
-//const Pool = require('pg').Pool
-//const pool = new Pool({
-//    user: 'postgres',
-//    host: 'localhost',
-//    database: 'test',
-//    password: 'admin'
-//});
 
 // Settings
-app.set('port', process.env.PORT || 3000); // Port
+app.set('port', process.env.PORT || 8080); // Port
+
+//app.set('cert', fs.readFileSync('/path/to/cert.pem'));
+//app.set('key', fs.readFileSync('/path/to/key.pem'));
+
 app.use(express.static(path.join(__dirname, 'public'))); // Static files
 
-// Start server
+
 const server = app.listen(app.get('port'), () => {
     console.log('Server on port', app.get('port'));
-    console.log('rutepath', __dirname);
+    //console.log('rutepath', __dirname);
 
     // Postgres connection
     //pool.connect()
@@ -35,16 +36,12 @@ const server = app.listen(app.get('port'), () => {
     //    });
 });
 
-// Websockets
-const io = require('socket.io')(server, {
-    transports: ['polling', 'websocket'],
-    path: '/socket.io'
-});
-//const io = socketio(server);
+
+const io = new webSocket.Server({ server });
 
 io.on('connection', (socket) => {
     setInterval(() => {
-        io.sockets.emit('event_test_ticket', {
+        io.emit('event_test_ticket', {
             'id_ticket': 1,
             'id_cola': 1,
             'posicion': 1,
@@ -57,7 +54,7 @@ io.on('connection', (socket) => {
             'device_id': null
         });
 
-        io.sockets.emit('event_test_cola', {
+        io.emit('event_test_cola', {
             'id_cola': 1,
             'descripcion': 'Cola test websocket',
             'id_establecimiento': 1,
@@ -67,9 +64,5 @@ io.on('connection', (socket) => {
         });
     }, 6000);
 
-    console.log('new connection', socket.id);
-    //io.on('new-user-queue', () => {
-    //    console.log("nuevo usuario encolado...");
-    //    io.sockets.emit('nuevo usuario encolado...');
-    //});
+    console.log('new connection', socket);
 });

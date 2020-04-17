@@ -1,0 +1,21 @@
+{
+  "name": "ticket-app_web-socket-app",
+  "version": "0.0.0",
+  "description": "TicketApp_WebSocketApp",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "author": {
+    "name": "Josu� Mercadillo"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "pg": "^8.0.0",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}

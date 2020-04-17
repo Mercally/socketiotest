@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import * as io from 'socket.io-client';
 
 
 @Component({
@@ -8,22 +8,14 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 })
 export class SubscribeComponent {
 
-  socketUrl = 'wss://websocketapp.azurewebsites.net/';
-  //socketUrl = 'wss://localhost:3000/';
-  //ticketSocket: WebSocketSubject<any> = webSocket<any>(this.socketUrl);
-  objectSocket$ = webSocket(this.socketUrl);
+  socket;
+  socketUrl = 'wss://server16.eastus.cloudapp.azure.com/';
 
   constructor() {
-
+    this.socket = io(this.socketUrl);
   }
 
   onClickSubscribe() {
-    this.objectSocket$.subscribe((next) => {
-      console.log('next', next);
-    }, (error) => {
-        console.log('error', error);
-    }, () => {
-        console.log('complete connection ws');
-    });
+    this.socket.setupSocketConnection();
   }
 }

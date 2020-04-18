@@ -47,7 +47,7 @@ const server = app.listen(app.get('port'), () => {
             client.query('LISTEN create_ticket');
             client.on('notification', (data) => {
                 var payload = JSON.parse(data.payload);
-                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+                var room = `rm_${payload.id_cola}`;
                 console.log('New ticket in queue/room:', room);
 
                 io.to(room).emit('newTicket', payload);
@@ -56,7 +56,7 @@ const server = app.listen(app.get('port'), () => {
             client.query('LISTEN update_ticket');
             client.on('notification', (data) => {
                 var payload = JSON.parse(data.payload);
-                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+                var room = `rm_${payload.id_cola}_${payload.id_ticket}`;
                 console.log('New ticket in queue/room:', room);
 
                 // Emitir notificación al propietario del socket:
@@ -104,6 +104,7 @@ io.on('connection', (socket) => {
 });
 
 const onSetUsername = (socket, username) => {
+    socket.id = username;
     socket.username = username;
     socket.emit('updateServer', 'Username ' + username + ' set successfully!');
 }

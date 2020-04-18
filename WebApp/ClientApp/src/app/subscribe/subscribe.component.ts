@@ -37,6 +37,7 @@ export class SubscribeComponent {
     this.socket = io.connect(this.socketUrl, {
       // Opcionales adicionales
       query: { // Parámetros a enviar en la petición de conexión
+        id: this.userName,
         username: this.userName,
         room: this.roomName
       }

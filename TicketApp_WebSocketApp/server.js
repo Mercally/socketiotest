@@ -45,7 +45,12 @@ io.on('connection', (socket) => {
     countClients++;
 
     // Enviando mensaje generico a todos
-    io.sockets.emit('updateServer', 'A new user connected a server!!');
+    io.sockets.emit('updateServer', 'A new user connected a server!');
+
+    socket.on('set-username', (username) => {
+        socket.username = username;
+        socket.emit('updateServer', 'User name ' + username + ' set successfully!');
+    });
 
     // Evento cuando socket pide cambiar de room
     socket.on('switchRoom', function (newRoom) {

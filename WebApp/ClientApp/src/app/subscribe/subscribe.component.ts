@@ -8,25 +8,45 @@ import * as io from 'socket.io-client';
 })
 export class SubscribeComponent {
 
-  socket;
-  socketUrl = 'wss://server16.eastus.cloudapp.azure.com/';
-  roomName = 'room2';
+  socket: any = null;
+  socketUrl: string = 'wss://server16.eastus.cloudapp.azure.com/';
+  userName: string = 'nickname';
+  roomName: string = 'room2';
 
-  constructor() {
-   
-  }
+  constructor() {}
 
   onClickSubscribe() {
 
-    console.log('roomName', this.roomName);
+    // Conectando con el servidor
+    this.connectWs();
 
+    // Evendo cuando se conecta
+    this.socket.on('connect', () => {
+      console.log('ws connected!')
+    });
+
+    // Evento cuando se desconecta
+    this.socket.on('disconnect', () => {
+      console.log('ws disconnected!');
+    });
+  }
+
+  /**Función para conectar con websocket */
+  connectWs() {
     // Creando conexión
-    this.socket = io(this.socketUrl);
+    this.socket = io.connect(this.socketUrl, {
+      // Opcionales adicionales
+      query: { // Parámetros a enviar en la petición de conexión
+        username: this.userName,
+        room: this.roomName
+      }
+    });
 
-    this.socket.emit('set-username', 'var_nickname');
+    // Cambiando de nombre de usuario
+    //this.socket.emit('setUsername', this.userName);
 
-    // Cambiando de room
-    this.socket.emit('switchRoom', 'room2');
+    // Cambiando de sala
+    //this.socket.emit('switchRoom', this.roomName);
 
     // Evento cuando cambia de sala
     this.socket.on('updateRooms', (rooms, current_room) => {
@@ -44,8 +64,13 @@ export class SubscribeComponent {
     });
 
     // Evento recibe mensaje especifico
-    this.socket.on('new-user-queue', (args) => {
-      console.log('new-user-queue', args);
+    this.socket.on('updateCola', (args) => {
+      console.log('updateCola', args);
+    });
+
+    // Evento recibe mensaje especifico
+    this.socket.on('updateTicket', (args) => {
+      console.log('updateTicket', args);
     });
   }
 }

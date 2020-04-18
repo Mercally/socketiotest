@@ -19,6 +19,8 @@ export class SubscribeComponent {
     // Creando conexión
     this.socket = io(this.socketUrl);
 
+    this.socket.emit('set-username', 'var_nickname');
+
     // Cambiando de room
     this.socket.emit('switchRoom', 'room2');
 

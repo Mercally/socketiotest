@@ -38,17 +38,36 @@ const server = app.listen(app.get('port'), () => {
 });
 
 const io = require('socket.io')(server);
+var rooms = [], countClients = 0;
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+    console.log('A user connected');
+    countClients++;
 
-    socket.join('room1');
+    // Enviando mensaje generico a todos
+    io.sockets.emit('updateServer', 'A new user connected a server!!');
 
-    io.to('room1').emit('message', 'a new user connected!!');
+    // Evento cuando socket pide cambiar de room
+    socket.on('switchRoom', function (newRoom) {
+        if (rooms.indexOf(newRoom) === -1) {
+            rooms.push(newRoom);
+        }
 
-    //io.sockets.emit('message', 'a new user connected!!');
+        // saliendo de la sala actual (almacenada en sesión)
+        socket.leave(socket.room);
+        // Entrando a la nueva sala, recibida del nombre del parámetro
+        socket.join(newRoom);
+        socket.emit('updateRoom', 'SERVER', 'You have connected to ' + newRoom + ' successfully!');
+        // Mandando mensaje a la sala anterior
+        socket.broadcast.to(socket.room).emit('updateRoom', 'SERVER', socket.username + ' has left this room');
+        // Actualizando datos de la sesión del socket titular
+        socket.room = newRoom;
+        socket.broadcast.to(newRoom).emit('updateRoom', 'SERVER', socket.username + ' has joined this room');
+        socket.emit('updateRooms', rooms, newRoom);
+    });
 
     socket.on('disconnect', () => {
-        console.log('user disconnected');
+        countClients--;
+        console.log('User disconnected');
     });
 });

@@ -5,7 +5,6 @@ const path = require('path');
 const express = require('express');
 const http = require('http');
 const app = express();
-const io = require('socket.io')(http);
 
 // Settings
 app.set('port', process.env.PORT || 3000);
@@ -15,8 +14,14 @@ const server = app.listen(app.get('port'), () => {
     console.log('Server on port', app.get('port'));
 });
 
+const io = require('socket.io')(server);
+//io.listen;
+
 io.on('connection', (socket) => {
     console.log('a user connected');
+
+    io.sockets.emit('message', 'a new user connected!!');
+
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });

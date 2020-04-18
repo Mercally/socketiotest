@@ -21,5 +21,9 @@ export class SubscribeComponent {
     this.socket.on('message', (args) => {
       console.log('message', args);
     });
+
+    this.socket.on('new-user-queue', (args) => {
+      console.log('new-user-queue', args);
+    });
   }
 }

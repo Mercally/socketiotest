@@ -27,8 +27,10 @@ const server = app.listen(app.get('port'), () => {
             client.on('notification', (data) => {
                 var payload = JSON.parse(data.payload);
                 console.log('row added', payload);
-                io.sockets.emit('new-user-queue', payload);
+
+                io.to('room1').emit('new-user-queue', payload);
             });
+
             console.log('postgres connected successfully!');
         }).catch(error => {
             console.log('ERROR: postgres:', error);
@@ -40,7 +42,11 @@ const io = require('socket.io')(server);
 io.on('connection', (socket) => {
     console.log('a user connected');
 
-    io.sockets.emit('message', 'a new user connected!!');
+    socket.join('room1');
+
+    io.to('room1').emit('message', 'a new user connected!!');
+
+    //io.sockets.emit('message', 'a new user connected!!');
 
     socket.on('disconnect', () => {
         console.log('user disconnected');

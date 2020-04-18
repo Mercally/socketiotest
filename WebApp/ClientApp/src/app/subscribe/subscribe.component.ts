@@ -69,6 +69,16 @@ export class SubscribeComponent {
     });
 
     // Evento recibe mensaje especifico
+    this.socket.on('createeCola', (args) => {
+      console.log('createeCola', args);
+    });
+
+    // Evento recibe mensaje especifico
+    this.socket.on('createTicket', (args) => {
+      console.log('createTicket', args);
+    });
+
+    // Evento recibe mensaje especifico
     this.socket.on('updateTicket', (args) => {
       console.log('updateTicket', args);
     });

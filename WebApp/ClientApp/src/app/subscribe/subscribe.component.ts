@@ -10,12 +10,16 @@ export class SubscribeComponent {
 
   socket;
   socketUrl = 'wss://server16.eastus.cloudapp.azure.com/';
+  roomName = 'room2';
 
   constructor() {
    
   }
 
   onClickSubscribe() {
+
+    console.log('roomName', this.roomName);
+
     // Creando conexión
     this.socket = io(this.socketUrl);
 

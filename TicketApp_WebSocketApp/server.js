@@ -23,12 +23,27 @@ const server = app.listen(app.get('port'), () => {
     // Postgres connection
     pool.connect()
         .then(client => {
-            client.query('LISTEN new_testevent');
-            client.on('notification', (data) => {
-                var payload = JSON.parse(data.payload);
-                console.log('row added', payload);
 
-                io.to('room1').emit('new-user-queue', payload);
+            // A escucha de la creación/actualización de colas
+            client.query('LISTEN update_cola');
+            client.on('notification', (data) => {
+                
+                var payload = JSON.parse(data.payload);
+                console.log('row cola updated', payload);
+
+                io.to('room1').emit('update_cola', payload);
+                io.to('room2').emit('update_cola', payload);
+            });
+
+            // A escucha de la creación/actualización de tickets
+            client.query('LISTEN update_ticket');
+            client.on('notification', (data) => {
+
+                var payload = JSON.parse(data.payload);
+                console.log('row ticket updated', payload);
+
+                io.to('room1').emit('update_ticket', payload);
+                io.to('room2').emit('update_ticket', payload);
             });
 
             console.log('postgres connected successfully!');
@@ -70,4 +85,6 @@ io.on('connection', (socket) => {
         countClients--;
         console.log('User disconnected');
     });
+
+    console.log('Clients connected', countClients);
 });

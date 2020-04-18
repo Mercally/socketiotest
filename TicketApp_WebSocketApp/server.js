@@ -6,11 +6,11 @@ const app = express();
 
 const pg = require('pg');
 const pool = new pg.Pool({
-    host: 'database-test.cnbndhjcuspi.us-east-2.rds.amazonaws.com',
-    port: 5432,
-    database: 'test',
-    user: 'postgres',
-    password: '4dm1n3214dm1n321'
+    host: 'bd.idea4.quenecesito.org',
+    port: 1003,
+    database: 'ticketapptest',
+    user: 'ticketuser',
+    password: 'T!3537App'
 });
 
 // Settings
@@ -25,25 +25,42 @@ const server = app.listen(app.get('port'), () => {
         .then(client => {
 
             // A escucha de la creación/actualización de colas
+            client.query('LISTEN create_cola');
+            client.on('notification', (data) => {
+                var payload = JSON.parse(data.payload);
+                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+                console.log('New queue/room:', room);
+                
+                io.to(room).emit('newQueue', payload);
+            });
+
             client.query('LISTEN update_cola');
             client.on('notification', (data) => {
-                
                 var payload = JSON.parse(data.payload);
-                console.log('row cola updated', payload);
+                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+                console.log('Update queue/room:', room);
 
-                io.to('room1').emit('update_cola', payload);
-                io.to('room2').emit('update_cola', payload);
+                io.to(room).emit('updateQueue', payload);
             });
 
             // A escucha de la creación/actualización de tickets
+            client.query('LISTEN create_ticket');
+            client.on('notification', (data) => {
+                var payload = JSON.parse(data.payload);
+                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+                console.log('New ticket in queue/room:', room);
+
+                io.to(room).emit('newTicket', payload);
+            });
+
             client.query('LISTEN update_ticket');
             client.on('notification', (data) => {
-
                 var payload = JSON.parse(data.payload);
-                console.log('row ticket updated', payload);
+                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+                console.log('New ticket in queue/room:', room);
 
-                io.to('room1').emit('update_ticket', payload);
-                io.to('room2').emit('update_ticket', payload);
+                // Emitir notificación al propietario del socket:
+                //io.sockets.(room).emit('updateTicket', payload);
             });
 
             console.log('postgres connected successfully!');
@@ -52,44 +69,63 @@ const server = app.listen(app.get('port'), () => {
         });
 });
 
+// Inicializando servidor de websockets:
 const io = require('socket.io')(server);
 var rooms = [], countClients = 0;
 
 io.on('connection', (socket) => {
-    console.log('A user connected');
     countClients++;
+
+    var username = socket.handshake.query.username;
+    var room = socket.handshake.query.room;
+
+    console.log(`A user connected (${room}/${username})(${countClients} connected in server)`);
+
+    onSetUsername(socket, username);
+    onSwitchRoom(socket, room);
 
     // Enviando mensaje generico a todos
     io.sockets.emit('updateServer', 'A new user connected a server!');
 
-    socket.on('set-username', (username) => {
-        socket.username = username;
-        socket.emit('updateServer', 'User name ' + username + ' set successfully!');
+    // Evento cuando socket pide cambiar username
+    socket.on('setUsername', (username) => {
+        onSetUsername(socket, username);
     });
 
     // Evento cuando socket pide cambiar de room
     socket.on('switchRoom', function (newRoom) {
-        if (rooms.indexOf(newRoom) === -1) {
-            rooms.push(newRoom);
-        }
-
-        // saliendo de la sala actual (almacenada en sesión)
-        socket.leave(socket.room);
-        // Entrando a la nueva sala, recibida del nombre del parámetro
-        socket.join(newRoom);
-        socket.emit('updateRoom', 'SERVER', 'You have connected to ' + newRoom + ' successfully!');
-        // Mandando mensaje a la sala anterior
-        socket.broadcast.to(socket.room).emit('updateRoom', 'SERVER', socket.username + ' has left this room');
-        // Actualizando datos de la sesión del socket titular
-        socket.room = newRoom;
-        socket.broadcast.to(newRoom).emit('updateRoom', 'SERVER', socket.username + ' has joined this room');
-        socket.emit('updateRooms', rooms, newRoom);
+        onSwitchRoom(socket, newRoom);
     });
 
     socket.on('disconnect', () => {
         countClients--;
-        console.log('User disconnected');
+        console.log('User disconnected (' + countClients  + ' connected)');
     });
-
-    console.log('Clients connected', countClients);
 });
+
+const onSetUsername = (socket, username) => {
+    socket.username = username;
+    socket.emit('updateServer', 'Username ' + username + ' set successfully!');
+}
+
+/**
+ * Función para evento cuando un usuario se agrega a una sala.
+ * @param {any} newRoom
+ */
+const onSwitchRoom = (socket, newRoom) => {
+    if (rooms.indexOf(newRoom) === -1) {
+        rooms.push(newRoom);
+    }
+
+    // saliendo de la sala actual (almacenada en sesión)
+    socket.leave(socket.room);
+    // Entrando a la nueva sala, recibida del nombre del parámetro
+    socket.join(newRoom);
+    socket.emit('updateRoom', 'SERVER', 'You have connected to ' + newRoom + ' successfully!');
+    // Mandando mensaje a la sala anterior
+    socket.broadcast.to(socket.room).emit('updateRoom', 'SERVER', socket.username + ' has left this room');
+    // Actualizando datos de la sesión del socket titular
+    socket.room = newRoom;
+    socket.broadcast.to(newRoom).emit('updateRoom', 'SERVER', socket.username + ' has joined this room');
+    socket.emit('updateRooms', rooms, newRoom);
+}

@@ -65,18 +65,18 @@ export class SubscribeComponent {
     });
 
     // Evento recibe mensaje especifico
-    this.socket.on('updateCola', (args) => {
-      console.log('updateCola', args);
+    this.socket.on('newQueue', (args) => {
+      console.log('newQueue', args);
     });
 
     // Evento recibe mensaje especifico
-    this.socket.on('createeCola', (args) => {
-      console.log('createeCola', args);
+    this.socket.on('updateQueue', (args) => {
+      console.log('updateQueue', args);
     });
 
     // Evento recibe mensaje especifico
-    this.socket.on('createTicket', (args) => {
-      console.log('createTicket', args);
+    this.socket.on('newTicket', (args) => {
+      console.log('newTicket', args);
     });
 
     // Evento recibe mensaje especifico

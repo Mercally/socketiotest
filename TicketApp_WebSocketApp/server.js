@@ -23,54 +23,65 @@ const server = app.listen(app.get('port'), () => {
     // Postgres connection
     pool.connect()
         .then(client => {
-            // A escucha de la creación/actualización de colas
+            // A escucha de la creación/actualización de colas y tickets:
             client.query('LISTEN create_cola');
             client.query('LISTEN update_cola');
+            client.query('LISTEN create_ticket');
+            client.query('LISTEN update_ticket');
+            // Cuando se recibe una notificación de la base de datos:
             client.on('notification', (data) => {
                 console.log('NOTIFICATION CHANNEL:', data.channel);
                 var payload = JSON.parse(data.payload);
-                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
-                console.log('New queue/room:', room);
-                
-                io.to(room).emit('newQueue', payload);
+                switch (data.channel) {
+                    case 'create_cola':
+                        onCreateQueue(payload);
+                        break;
+                    case 'update_cola':
+                        onUpdateQueue(payload);
+                        break;
+                    case 'create_ticket':
+                        onCreateTicket(payload);
+                        break;
+                    case 'update_ticket':
+                        onUpdateTicket(payload);
+                        break;
+                }
             });
-
-            //client.query('LISTEN update_cola');
-            //client.on('notification', (data) => {
-            //    var payload = JSON.parse(data.payload);
-            //    var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
-            //    console.log('Update queue/room:', room);
-
-            //    io.to(room).emit('updateQueue', payload);
-            //});
-
-            //// A escucha de la creación/actualización de tickets
-            //client.query('LISTEN create_ticket');
-            //client.on('notification', (data) => {
-            //    var payload = JSON.parse(data.payload);
-            //    var room = `rm_${payload.id_cola}`;
-            //    console.log('New ticket in queue/room:', room);
-
-            //    io.to(room).emit('newTicket', payload);
-            //});
-
-            //client.query('LISTEN update_ticket');
-            //client.on('notification', (data) => {
-            //    var payload = JSON.parse(data.payload);
-            //    var room = `rm_${payload.id_cola}`;
-            //    var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
-            //    console.log('Update ticket for user:', socketid);
-
-            //    // Emitir notificación al propietario del socket:
-            //    io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
-            //    //io.to(socketid).emit('updateTicket', payload);
-            //});
-
             console.log('postgres connected successfully!');
         }).catch(error => {
             console.log('ERROR: postgres:', error);
         });
 });
+
+const onCreateQueue = (payload) => {
+    var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+    console.log('New queue/room:', room);
+    io.to(room).emit('newQueue', payload);
+}
+
+const onUpdateQueue = (payload) => {
+    var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+    console.log('Update queue/room:', room);
+    io.to(room).emit('updateQueue', payload);
+}
+
+const onCreateTicket = (payload) => {
+    var payload = JSON.parse(data.payload);
+    var room = `rm_${payload.id_cola}`;
+    console.log('New ticket in queue/room:', room);
+
+    io.to(room).emit('newTicket', payload);
+}
+
+const onUpdateTicket = (payload) => {  
+    var room = `rm_${payload.id_cola}`;
+    var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
+    console.log('Update ticket for user:', socketid);
+
+    // Emitir notificación al propietario del socket:
+    io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
+    //io.to(socketid).emit('updateTicket', payload);
+}
 
 // Inicializando servidor de websockets:
 const io = require('socket.io')(server);
@@ -82,7 +93,7 @@ io.on('connection', (socket) => {
     var username = socket.handshake.query.username;
     var room = socket.handshake.query.room;
 
-    console.log(`A user connected (${room}/${username})(${countClients} connected in server)`);
+    console.log(`{ UserConnected: { room: '${room}', username: '${username}' }, ClientsActive: ${countClients} }`);
 
     onSetUsername(socket, username);
     onSwitchRoom(socket, room);

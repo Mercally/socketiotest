@@ -56,11 +56,13 @@ const server = app.listen(app.get('port'), () => {
             client.query('LISTEN update_ticket');
             client.on('notification', (data) => {
                 var payload = JSON.parse(data.payload);
+                var room = `rm_${payload.id_cola}`;
                 var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
-                console.log('New ticket in queue/room:', room);
+                console.log('Update ticket for user:', socketid);
 
                 // Emitir notificación al propietario del socket:
-                io.to(socketid).emit('updateTicket', payload);
+                io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
+                //io.to(socketid).emit('updateTicket', payload);
             });
 
             console.log('postgres connected successfully!');

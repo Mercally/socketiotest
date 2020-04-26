@@ -19,14 +19,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const server = app.listen(app.get('port'), () => {
     console.log('Server on port', app.get('port'));
-
+    
     // Postgres connection
     pool.connect()
         .then(client => {
-
             // A escucha de la creación/actualización de colas
             client.query('LISTEN create_cola');
+            client.query('LISTEN update_cola');
             client.on('notification', (data) => {
+                console.log('NOTIFICATION CHANNEL:', data.channel);
                 var payload = JSON.parse(data.payload);
                 var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
                 console.log('New queue/room:', room);
@@ -34,36 +35,36 @@ const server = app.listen(app.get('port'), () => {
                 io.to(room).emit('newQueue', payload);
             });
 
-            client.query('LISTEN update_cola');
-            client.on('notification', (data) => {
-                var payload = JSON.parse(data.payload);
-                var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
-                console.log('Update queue/room:', room);
+            //client.query('LISTEN update_cola');
+            //client.on('notification', (data) => {
+            //    var payload = JSON.parse(data.payload);
+            //    var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+            //    console.log('Update queue/room:', room);
 
-                io.to(room).emit('updateQueue', payload);
-            });
+            //    io.to(room).emit('updateQueue', payload);
+            //});
 
-            // A escucha de la creación/actualización de tickets
-            client.query('LISTEN create_ticket');
-            client.on('notification', (data) => {
-                var payload = JSON.parse(data.payload);
-                var room = `rm_${payload.id_cola}`;
-                console.log('New ticket in queue/room:', room);
+            //// A escucha de la creación/actualización de tickets
+            //client.query('LISTEN create_ticket');
+            //client.on('notification', (data) => {
+            //    var payload = JSON.parse(data.payload);
+            //    var room = `rm_${payload.id_cola}`;
+            //    console.log('New ticket in queue/room:', room);
 
-                io.to(room).emit('newTicket', payload);
-            });
+            //    io.to(room).emit('newTicket', payload);
+            //});
 
-            client.query('LISTEN update_ticket');
-            client.on('notification', (data) => {
-                var payload = JSON.parse(data.payload);
-                var room = `rm_${payload.id_cola}`;
-                var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
-                console.log('Update ticket for user:', socketid);
+            //client.query('LISTEN update_ticket');
+            //client.on('notification', (data) => {
+            //    var payload = JSON.parse(data.payload);
+            //    var room = `rm_${payload.id_cola}`;
+            //    var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
+            //    console.log('Update ticket for user:', socketid);
 
-                // Emitir notificación al propietario del socket:
-                io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
-                //io.to(socketid).emit('updateTicket', payload);
-            });
+            //    // Emitir notificación al propietario del socket:
+            //    io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
+            //    //io.to(socketid).emit('updateTicket', payload);
+            //});
 
             console.log('postgres connected successfully!');
         }).catch(error => {

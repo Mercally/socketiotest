@@ -54,33 +54,34 @@ const server = app.listen(app.get('port'), () => {
 });
 
 const onCreateQueue = (payload) => {
-    var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+    var room = getRoom(payload);
     console.log('New queue/room:', room);
     io.to(room).emit('newQueue', payload);
 }
 
 const onUpdateQueue = (payload) => {
-    var room = `room_${payload.id_establecimiento}_${payload.id_cola}`;
+    var room = getRoom(payload);
     console.log('Update queue/room:', room);
     io.to(room).emit('updateQueue', payload);
 }
 
 const onCreateTicket = (payload) => {
-    var payload = JSON.parse(data.payload);
-    var room = `rm_${payload.id_cola}`;
+    var room = getRoom(payload);
     console.log('New ticket in queue/room:', room);
-
     io.to(room).emit('newTicket', payload);
 }
 
 const onUpdateTicket = (payload) => {  
-    var room = `rm_${payload.id_cola}`;
+    var room = getRoom(payload);
     var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
     console.log('Update ticket for user:', socketid);
-
     // Emitir notificación al propietario del socket:
     io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
     //io.to(socketid).emit('updateTicket', payload);
+}
+
+const getRoom = (payload) => {
+    return `room_${payload.id_cola}`;
 }
 
 // Inicializando servidor de websockets:

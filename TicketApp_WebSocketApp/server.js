@@ -54,34 +54,38 @@ const server = app.listen(app.get('port'), () => {
 });
 
 const onCreateQueue = (payload) => {
-    var room = getRoom(payload);
+    var room = getRoomId(payload);
     console.log('New queue/room:', room);
     io.to(room).emit('newQueue', payload);
 }
 
 const onUpdateQueue = (payload) => {
-    var room = getRoom(payload);
+    var room = getRoomId(payload);
     console.log('Update queue/room:', room);
     io.to(room).emit('updateQueue', payload);
 }
 
 const onCreateTicket = (payload) => {
-    var room = getRoom(payload);
+    var room = getRoomId(payload);
     console.log('New ticket in queue/room:', room);
     io.to(room).emit('newTicket', payload);
 }
 
 const onUpdateTicket = (payload) => {  
-    var room = getRoom(payload);
-    var socketid = `rm_${payload.id_cola}_${payload.id_ticket}`;
+    var room = getRoomId(payload);
+    var socketid = getSocketId(payload);
     console.log('Update ticket for user:', socketid);
     // Emitir notificación al propietario del socket:
     io.to(room).emit('updateTicket', { socketid: socketid, payload: payload });
     //io.to(socketid).emit('updateTicket', payload);
 }
 
-const getRoom = (payload) => {
+const getRoomId = (payload) => {
     return `room_${payload.id_cola}`;
+}
+
+const getSocketId = (payload) => {
+    return `${getRoomId(payload)}_socket_${payload.id_ticket}`;
 }
 
 // Inicializando servidor de websockets:

@@ -98,13 +98,8 @@ io.on('connection', (socket) => {
     var username = socket.handshake.query.username;
     var room = socket.handshake.query.room;
 
-    console.log(`{ UserConnected: { room: '${room}', username: '${username}' }, ClientsActive: ${countClients} }`);
-
-    onSetUsername(socket, username);
     onSwitchRoom(socket, room);
-
-    // Enviando mensaje generico a todos
-    io.sockets.emit('updateServer', 'A new user connected a server!');
+    onSetUsername(socket, username);
 
     // Evento cuando socket pide cambiar username
     socket.on('setUsername', (username) => {
@@ -112,40 +107,46 @@ io.on('connection', (socket) => {
     });
 
     // Evento cuando socket pide cambiar de room
-    socket.on('switchRoom', function (newRoom) {
-        onSwitchRoom(socket, newRoom);
+    socket.on('switchRoom', function (room) {
+        onSwitchRoom(socket, room);
     });
 
     socket.on('disconnect', () => {
         countClients--;
         console.log('User disconnected (' + countClients  + ' connected)');
     });
+
+    var connected = { UserConnected: { room: room, username: username }, ClientsActive: countClients };
+    console.log("User connected", connected);
+    // Enviando mensaje generico a todos
+    io.sockets.emit('updateServer', 'A new user connected a server!');
 });
 
 const onSetUsername = (socket, username) => {
-    socket.id = username;
     socket.username = username;
     socket.emit('updateServer', 'Username ' + username + ' set successfully!');
 }
 
 /**
  * Función para evento cuando un usuario se agrega a una sala.
- * @param {any} newRoom
+ * @param {any} room
  */
-const onSwitchRoom = (socket, newRoom) => {
-    if (rooms.indexOf(newRoom) === -1) {
-        rooms.push(newRoom);
+const onSwitchRoom = (socket, room) => {
+    if (rooms.indexOf(room) === -1) {
+        rooms.push(room);
     }
-
     // saliendo de la sala actual (almacenada en sesión)
-    socket.leave(socket.room);
-    // Entrando a la nueva sala, recibida del nombre del parámetro
-    socket.join(newRoom);
-    socket.emit('updateRoom', 'You have connected to ' + newRoom + ' successfully!');
-    // Mandando mensaje a la sala anterior
-    socket.broadcast.to(socket.room).emit('updateRoom', socket.username + ' has left this room');
+    if (socket.room) {
+        socket.leave(socket.room, () => {
+            // Mandando mensaje a la sala anterior
+            socket.to(socket.room).emit('updateRoom', socket.username + ' has left this room!');
+        });
+    }
     // Actualizando datos de la sesión del socket titular
-    socket.room = newRoom;
-    socket.broadcast.to(newRoom).emit('updateRoom', socket.username + ' has joined this room');
-    socket.emit('updateRooms', rooms, newRoom);
+    socket.room = room;
+    // Entrando a la nueva sala, recibida del nombre del parámetro
+    socket.join(room, () => {
+        socket.emit('updateRoom', 'You have connected to ' + room + ' successfully!');
+        socket.to(room).emit('updateRoom', socket.username + ' has joined ' + room + ' room!');
+    });
 }

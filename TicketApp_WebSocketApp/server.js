@@ -141,11 +141,11 @@ const onSwitchRoom = (socket, newRoom) => {
     socket.leave(socket.room);
     // Entrando a la nueva sala, recibida del nombre del parámetro
     socket.join(newRoom);
-    socket.emit('updateRoom', 'SERVER', 'You have connected to ' + newRoom + ' successfully!');
+    socket.emit('updateRoom', 'You have connected to ' + newRoom + ' successfully!');
     // Mandando mensaje a la sala anterior
-    socket.broadcast.to(socket.room).emit('updateRoom', 'SERVER', socket.username + ' has left this room');
+    socket.broadcast.to(socket.room).emit('updateRoom', socket.username + ' has left this room');
     // Actualizando datos de la sesión del socket titular
     socket.room = newRoom;
-    socket.broadcast.to(newRoom).emit('updateRoom', 'SERVER', socket.username + ' has joined this room');
+    socket.broadcast.to(newRoom).emit('updateRoom', socket.username + ' has joined this room');
     socket.emit('updateRooms', rooms, newRoom);
 }

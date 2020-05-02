@@ -10,8 +10,8 @@ export class SubscribeComponent {
 
   socket: any = null;
   socketUrl: string = 'wss://nodejswebsocket-ticketapp.uc.r.appspot.com/';
-  userName: string = 'nickname';
-  roomName: string = 'room2';
+  userName: string = '1';
+  roomName: string = 'room_1';
 
   constructor() {}
 
@@ -50,13 +50,13 @@ export class SubscribeComponent {
     //this.socket.emit('switchRoom', this.roomName);
 
     // Evento cuando cambia de sala
-    this.socket.on('updateRooms', (rooms, current_room) => {
-      console.log('updateRooms', rooms, current_room);
+    this.socket.on('updateRooms', (current_room) => {
+      console.log('updateRooms', current_room);
     });
 
     // Evento cuando actualiza estado cualquier socket en la sala
-    this.socket.on('updateRoom', (from, message) => {
-      console.log('updateRoom', from, message);
+    this.socket.on('updateRoom', (message) => {
+      console.log('updateRoom', message);
     });
 
     // Evento recibe mensaje generico

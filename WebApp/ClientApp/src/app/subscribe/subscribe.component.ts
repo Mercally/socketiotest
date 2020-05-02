@@ -9,7 +9,7 @@ import * as io from 'socket.io-client';
 export class SubscribeComponent {
 
   socket: any = null;
-  socketUrl: string = 'wss://server16.eastus.cloudapp.azure.com/';
+  socketUrl: string = 'wss://nodejswebsocket-ticketapp.uc.r.appspot.com/';
   userName: string = 'nickname';
   roomName: string = 'room2';
 

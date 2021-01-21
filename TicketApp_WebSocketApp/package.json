@@ -15,7 +15,7 @@
     "fs": "0.0.1-security",
     "pg": "^8.0.0",
     "pg-listen": "^1.5.1",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "socket.io-adapter": "^1.1.2"
   },
   "devDependencies": {
